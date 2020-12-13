@@ -1,0 +1,3 @@
+{
+    "cmd:rw_50k_lines": ["deno", "--allow-read", "--allow-write", "benchmark.ts"]
+}
