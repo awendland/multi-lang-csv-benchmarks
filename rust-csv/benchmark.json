@@ -1,3 +1,4 @@
 {
-    "run:rw_50k_lines": ["cargo", "run"]
+  "check:environment": ["cargo", "--version"],
+  "run:csv_to_tsv": ["cargo", "run"]
 }
