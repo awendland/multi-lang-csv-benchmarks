@@ -59,18 +59,21 @@ for benchmark in args.benchmarks:
     logging.info("BENCHMARK: %s", benchmark)
     try:
         benchmark_suite = json.loads(benchmark_manifest.read_text("utf8"))
+        benchmark_out_file = (benchmark_dir / "out.tsv").resolve()
 
-        CMD_ENV_VARS = {
+        cmd_env_vars = {
             "BENCH_IN_CSV": args.input_csv.resolve(),
-            "BENCH_OUT_TSV": (benchmark_dir / "out.tsv").resolve(),
+            "BENCH_OUT_TSV": benchmark_out_file,
         }
+        if benchmark_out_file.exists():
+            benchmark_out_file.unlink()
 
         cmd_check_env = benchmark_suite["check:environment"]
         logging.info('%s: checking environment with "%s"', benchmark, cmd_check_env)
         subprocess.run(
             [shutil.which(cmd_check_env[0])] + cmd_check_env[1:],
             cwd=benchmark_dir,
-            env=CMD_ENV_VARS,
+            env=cmd_env_vars,
             stderr=subprocess.STDOUT,
             stdout=None
             if logging.getLogger().getEffectiveLevel() <= logging.INFO
