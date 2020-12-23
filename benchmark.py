@@ -34,6 +34,12 @@ parser.add_argument(
     type=lambda p: Path(p).resolve(),
     help="the well-formed CSV file to use as benchmark input",
 )
+parser.add_argument(
+    "--timeout",
+    default=5 * 60,  # seconds
+    type=int,
+    help="the maximum time (in seconds) that a benchmark can run before its terminated",
+)
 args = parser.parse_args()
 
 logging.basicConfig(
@@ -98,36 +104,53 @@ for benchmark in args.benchmarks:
             benchmark,
             cmd_run_benchmark,
         )
-        subprocess.run(
-            [shutil.which(cmd_run_benchmark[0])] + cmd_run_benchmark[1:],
-            cwd=benchmark_dir,
-            env=CMD_ENV_VARS,
-            stderr=subprocess.STDOUT,
-            stdout=None
-            if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
-            else subprocess.DEVNULL,
-        )
+        try:
+            benchmark_run = subprocess.run(
+                [shutil.which(cmd_run_benchmark[0])] + cmd_run_benchmark[1:],
+                cwd=benchmark_dir,
+                env=cmd_env_vars,
+                stderr=subprocess.STDOUT,
+                stdout=None
+                if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
+                else subprocess.DEVNULL,
+                timeout=args.timeout,
+            )
+            benchmark_run.check_returncode()
 
-        logging.debug("%s: loading latest benchmark results", benchmark)
-        latest_results = benchmark_performance.read_text("utf8").strip().split("\n")
-        if len(latest_results) == 0:
-            logging.error(
-                "%s: no benchmark results found at %s", benchmark, benchmark_performance
+            logging.debug("%s: loading latest benchmark results", benchmark)
+            latest_results = benchmark_performance.read_text("utf8").strip().split("\n")
+            if len(latest_results) == 0:
+                logging.error(
+                    "%s: no benchmark results found at %s",
+                    benchmark,
+                    benchmark_performance,
+                )
+                continue
+            latest_result = json.loads(latest_results[-1])
+            if (
+                prev_result is not None
+                and latest_result["recorded_at"] == prev_result["recorded_at"]
+            ):
+                logging.error(
+                    '%s: benchmark appears to have failed (the latest timestamp in "%s" did not change)',
+                    benchmark,
+                    benchmark_performance,
+                )
+                continue
+            logging.info("%s: runtime was %d ms", benchmark, latest_result["duration"])
+            results[benchmark] = latest_result["duration"]
+        except subprocess.TimeoutExpired as e:
+            logging.warning(
+                "%s: benchmark exceeded %d second timeout", benchmark, e.timeout
             )
-            continue
-        latest_result = json.loads(latest_results[-1])
-        if (
-            prev_result is not None
-            and latest_result["recorded_at"] == prev_result["recorded_at"]
-        ):
-            logging.error(
-                '%s: benchmark appears to have failed (the latest timestamp in "%s" did not change)',
-                benchmark,
-                benchmark_performance,
+            lines_written = sum(1 for line in open(cmd_env_vars["BENCH_OUT_TSV"]))
+            logging.warning(
+                "%s: wrote %d lines prior to termination", benchmark, lines_written
             )
-            continue
-        logging.info("%s: runtime was %d ms", benchmark, latest_result["duration"])
-        results[benchmark] = latest_result["duration"]
+            results[benchmark] = "TIMEOUT[lines=%d,time=%d]" % (
+                lines_written,
+                e.timeout * 1000,
+            )
     except Exception as e:
         logging.exception(e)
         results[benchmark] = "FAILED"
