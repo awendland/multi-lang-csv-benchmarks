@@ -1,0 +1,11 @@
+{
+  "check:environment": ["deno", "--version"],
+  "run:csv_to_tsv": [
+    "deno",
+    "run",
+    "--allow-read",
+    "--allow-write",
+    "--allow-env",
+    "benchmark.ts"
+  ]
+}
