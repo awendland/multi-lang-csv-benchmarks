@@ -81,11 +81,15 @@ for benchmark in args.benchmarks:
         )
 
         logging.debug("%s: reviewing previous benchmark results", benchmark)
-        prev_results = benchmark_performance.read_text("utf8").strip().split("\n")
+        prev_results = []
+        if benchmark_performance.exists():
+            prev_results = benchmark_performance.read_text("utf8").strip().split("\n")
         if len(prev_results) > 0:
             prev_result = json.loads(prev_results[-1])
             logging.debug(
-                "%s: previous benchmark was run at %s", prev_result["recorded_at"]
+                "%s: previous benchmark was run at %s",
+                benchmark,
+                prev_result["recorded_at"],
             )
 
         cmd_run_benchmark = benchmark_suite["run:csv_to_tsv"]
