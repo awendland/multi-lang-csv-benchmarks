@@ -141,7 +141,7 @@ for benchmark in args.benchmarks:
             results[benchmark] = latest_result["duration"]
         except subprocess.TimeoutExpired as e:
             logging.warning(
-                "%s: benchmark exceeded %d second timeout", benchmark, e.timeout
+                "%s: benchmark exceeded %d second timeout", benchmark, round(e.timeout)
             )
             lines_written = sum(1 for line in open(cmd_env_vars["BENCH_OUT_TSV"]))
             logging.warning(
@@ -149,7 +149,7 @@ for benchmark in args.benchmarks:
             )
             results[benchmark] = "TIMEOUT[lines=%d,time=%d]" % (
                 lines_written,
-                e.timeout * 1000,
+                round(e.timeout * 1000),
             )
     except Exception as e:
         logging.exception(e)

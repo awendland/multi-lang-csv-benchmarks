@@ -26,6 +26,14 @@ fn benchmark<R: io::Read, W: io::Write>(in_csv: R, out_tsv: W) -> Result<Duratio
     Ok(now.elapsed())
 }
 
+fn escape_json(str: String) -> String {
+    str.replace("\\", "\\\\")
+        .replace("\"", "\\\"")
+        .replace("\r", "\\\r")
+        .replace("\n", "\\\n")
+        .replace("\t", "\\\t")
+}
+
 fn main() {
     let in_csv_path = env::var("BENCH_IN_CSV").unwrap_or("-".to_string());
     eprintln!("reading from '{}'", in_csv_path);
@@ -46,24 +54,31 @@ fn main() {
 
     match benchmark(in_csv, out_tsv) {
         Err(err) => {
-            println!("error running benchmark: {}", err);
+            eprintln!("error running benchmark: {}", err);
             process::exit(1);
         }
         Ok(runtime) => {
-            let mut file = OpenOptions::new()
+            let mut perf_file = OpenOptions::new()
                 .create(true)
                 .append(true)
                 .open("performance")
                 .expect("unable to open 'performance' file");
+            let bench_env_vars_json = {
+                let body = env::vars()
+                    .filter(|(k, _v)| k.contains("BENCH_"))
+                    .map(|(k, v)| format!("\"{}\": \"{}\"", escape_json(k), escape_json(v)))
+                    .collect::<Vec<String>>()
+                    .join(",");
+                format!("{{{}}}", body)
+            };
             if let Err(err) = writeln!(
-                &mut file,
-                r#"{{"recorded_at": "{at}", "duration": {dur}, "in_csv": "{csv}", "out_tsv": "{tsv}"}}"#,
+                &mut perf_file,
+                r#"{{"recorded_at": "{at}", "duration": {dur}, "env_args": {env_vars}}}"#,
                 at = Utc::now().to_rfc3339(),
                 dur = runtime.as_millis(),
-                csv = in_csv_path,
-                tsv = out_tsv_path
+                env_vars = bench_env_vars_json,
             ) {
-                println!("error saving benchmark results: {}", err);
+                eprintln!("error saving benchmark results: {}", err);
                 process::exit(2);
             }
         }

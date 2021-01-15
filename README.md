@@ -8,11 +8,11 @@ Each benchmark will self-report performance statistics. This is so extraneous ru
 
 ### Benchmark Results
 
-Each benchmark will write (append) their performance results as newline-delimited JSON to `$BENCHMARK_DIR/performance`. The JSON will match the following schema:
+Each benchmark will write (append) their performance results as newline-delimited JSON to `$(pwd)/performance`. The JSON will match the following schema:
 
 ```typescript
 {
-  "finished_at": string, // ISO 8601 date time
+  "recorded_at": string, // ISO 8601 date time
   "duration": number, // milliseconds
   "env_args": {} // all environment variables beginning with BENCH_
 }
