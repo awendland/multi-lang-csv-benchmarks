@@ -1,10 +1,12 @@
-from pathlib import Path
 import argparse
-import subprocess
 import json
 import logging
-import sys
+import os
+from pathlib import Path
+import platform
 import shutil
+import subprocess
+import sys
 
 benchmark_manifests = list(Path(__file__).parent.glob("*/benchmark.json"))
 benchmark_names = {p.parent.stem: p for p in benchmark_manifests}
@@ -64,16 +66,21 @@ for benchmark in args.benchmarks:
     benchmark_performance = benchmark_dir / "performance"
     logging.info("BENCHMARK: %s", benchmark)
     try:
-        benchmark_suite = json.loads(benchmark_manifest.read_text("utf8"))
-        benchmark_out_file = (benchmark_dir / "out.tsv").resolve()
+        os.chdir(benchmark_dir)
 
-        cmd_env_vars = {
+        # Setup env vars for specific mode
+        benchmark_out_file = (benchmark_dir / "out.tsv").resolve()
+        mode_env_vars = {
             "BENCH_IN_CSV": args.input_csv.resolve(),
             "BENCH_OUT_TSV": benchmark_out_file,
         }
-        if benchmark_out_file.exists():
-            benchmark_out_file.unlink()
 
+        # Load configuration and check environment
+        benchmark_suite = json.loads(benchmark_manifest.read_text("utf8"))
+        cmd_env_vars = {
+            "BENCH_MODE": args.mode,
+            **mode_env_vars,
+        }
         cmd_check_env = benchmark_suite["check:environment"]
         logging.info('%s: checking environment with "%s"', benchmark, cmd_check_env)
         subprocess.run(
@@ -86,7 +93,31 @@ for benchmark in args.benchmarks:
             else subprocess.DEVNULL,
         )
 
+        # Perform any build activities, if needed
+        try:
+            platform_str = platform.platform().lower()
+            cmd_build = benchmark_suite.get(f"build:{platform_str}", None)
+            if cmd_build is None:
+                cmd_build = benchmark_suite.get("build:any", None)
+            if cmd_build is not None:
+                full_env_for_building = {**cmd_env_vars, **os.environ}
+                logging.info('%s: building program with "%s"', benchmark, cmd_build)
+                subprocess.run(
+                    [shutil.which(cmd_build[0])] + cmd_build[1:],
+                    cwd=benchmark_dir,
+                    env=full_env_for_building,
+                    stderr=subprocess.STDOUT,
+                    stdout=None
+                    if logging.getLogger().getEffectiveLevel() <= logging.INFO
+                    else subprocess.DEVNULL,
+                )
+        except Exception as e:
+            logging.exception(e)
+            results[benchmark] = "BROKEN_BUILD"
+
+        # Check for previous benchmark results
         logging.debug("%s: reviewing previous benchmark results", benchmark)
+        prev_result = None
         prev_results = []
         if benchmark_performance.exists():
             prev_results = benchmark_performance.read_text("utf8").strip().split("\n")
@@ -97,6 +128,10 @@ for benchmark in args.benchmarks:
                 benchmark,
                 prev_result["recorded_at"],
             )
+
+        # Run specific mode
+        if benchmark_out_file.exists():
+            benchmark_out_file.unlink()
 
         cmd_run_benchmark = benchmark_suite["run:csv_to_tsv"]
         logging.info(
@@ -151,6 +186,9 @@ for benchmark in args.benchmarks:
                 lines_written,
                 round(e.timeout * 1000),
             )
+        finally:
+            # TODO check if the output that has been written is well-formed
+            pass
     except Exception as e:
         logging.exception(e)
         results[benchmark] = "FAILED"
