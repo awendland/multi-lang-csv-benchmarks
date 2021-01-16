@@ -1,4 +1,4 @@
 {
   "check:environment": ["python", "--version"],
-  "run:csv_to_tsv": ["python", "benchmark.py"]
+  "run:csv_to_tsv": ["python", "bench.py"]
 }

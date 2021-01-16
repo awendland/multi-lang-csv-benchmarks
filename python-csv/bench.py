@@ -14,7 +14,9 @@ eprint(f"writing to '{output_tsv_str}'")
 input_csv = sys.stdin if input_csv_str == "-" else open(input_csv_str, "r")
 output_tsv = sys.stdout if output_tsv_str == "-" else open(output_tsv_str, "w")
 
-writer = csv.writer(output_tsv, delimiter="\t", quoting=csv.QUOTE_MINIMAL)
+writer = csv.writer(
+    output_tsv, delimiter="\t", quoting=csv.QUOTE_MINIMAL, lineterminator="\n"
+)
 
 start = time.perf_counter()
 
