@@ -172,8 +172,9 @@ for benchmark in args.benchmarks:
                     benchmark_performance,
                 )
                 continue
-            logging.info("%s: runtime was %d ms", benchmark, latest_result["duration"])
-            results[benchmark] = latest_result["duration"]
+            duration = round(latest_result["duration"])
+            logging.info("%s: runtime was %d ms", benchmark, duration)
+            results[benchmark] = duration
         except subprocess.TimeoutExpired as e:
             logging.warning(
                 "%s: benchmark exceeded %d second timeout", benchmark, round(e.timeout)
