@@ -1,0 +1,5 @@
+{
+  "check:environment": ["node", "--version"],
+  "build:any": ["yarn", "--pure-lockfile"],
+  "run:csv_to_tsv": ["node", "benchmark.mjs"]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "mlcb-nodejs-fast-csv",
+  "version": "1.0.0",
+  "main": "benchmark.mjs",
+  "license": "Unlicense",
+  "private": true,
+  "dependencies": {
+    "fast-csv": "4.3.6"
+  }
+}
