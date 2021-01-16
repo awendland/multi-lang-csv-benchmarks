@@ -16,7 +16,7 @@ fn benchmark<R: io::Read, W: io::Write>(in_csv: R, out_tsv: W) -> Result<Duratio
         .has_headers(false)
         .from_reader(in_csv);
     let now = Instant::now();
-    for result in rdr.records() {
+    for result in rdr.byte_records() {
         let record = result?;
         wtr.write_record(&record)?;
     }

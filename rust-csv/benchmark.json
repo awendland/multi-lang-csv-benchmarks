@@ -1,4 +1,5 @@
 {
   "check:environment": ["cargo", "--version"],
-  "run:csv_to_tsv": ["cargo", "run"]
+  "build:any": ["cargo", "build", "--release"],
+  "run:csv_to_tsv": ["./target/release/mlcb-rust-csv"]
 }
