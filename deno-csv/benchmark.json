@@ -1,11 +1,12 @@
 {
   "check:environment": ["deno", "--version"],
+  "build:any": ["deno", "bundle", "benchmark.ts", "benchmark.bundle.js"],
   "run:csv_to_tsv": [
     "deno",
     "run",
     "--allow-read",
     "--allow-write",
     "--allow-env",
-    "benchmark.ts"
+    "benchmark.bundle.js"
   ]
 }
