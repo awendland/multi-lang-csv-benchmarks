@@ -8,8 +8,10 @@ import shutil
 import subprocess
 import sys
 
+
 benchmark_manifests = sorted(list(Path(__file__).parent.glob("*/benchmark.json")))
 benchmark_names = {p.parent.stem: p for p in benchmark_manifests}
+
 
 parser = argparse.ArgumentParser(description="Execute CSV processing benchmarks")
 parser.add_argument(
@@ -45,6 +47,12 @@ parser.add_argument(
 parser.add_argument(
     "--trials", default=1, type=int, help="the number of times to run each benchmark"
 )
+parser.add_argument(
+    "--report",
+    default=None,
+    type=lambda p: Path(p).resolve(),
+    help="path to write a JSON report containing the benchmark results",
+)
 args = parser.parse_args()
 
 logging.basicConfig(
@@ -52,21 +60,38 @@ logging.basicConfig(
     level=args.log_level,
 )
 
+if "all" in args.benchmarks:
+    args.benchmarks = list(benchmark_names.keys())
+
+
 logging.info(
     "Found %d lines in input CSV file '%s'",
     sum(1 for line in open(args.input_csv)),
     args.input_csv,
 )
 
-if "all" in args.benchmarks:
-    args.benchmarks = list(benchmark_names.keys())
 
-results = {}
+results = {
+    #   [benchmark]: [
+    #       {
+    #           "environment": string
+    #           "status": "DONE" | "FAILED" | "PENDING" (this should be internal & transient)
+    #           "failed:reason": "BROKEN_BUILD" | "UNKNOWN_PREP" | "UNKNOWN_TRIAL" | "DUP_TIMESTAMP" | "NO_RESULTS"
+    #           "done:duration": integer milliseconds
+    #           "timeout:lines": integer
+    #           "timeout:time": integer milliseconds
+    #       },
+    #       ...
+    #   ],
+    #   ...
+}
+
 
 for benchmark in args.benchmarks:
     benchmark_manifest = benchmark_names[benchmark]
     benchmark_dir = benchmark_manifest.parent
     benchmark_performance = benchmark_dir / "performance"
+    results[benchmark] = [{"status": "PENDING"} for i in range(args.trials)]
     logging.info("\nBENCHMARK: %s", benchmark)
 
     # Pre-trial setup activities
@@ -88,15 +113,17 @@ for benchmark in args.benchmarks:
         }
         cmd_check_env = benchmark_suite["check:environment"]
         logging.debug('%s: checking environment with "%s"', benchmark, cmd_check_env)
-        subprocess.run(
+        env_proc = subprocess.run(
             [shutil.which(cmd_check_env[0])] + cmd_check_env[1:],
             cwd=benchmark_dir,
             env=cmd_env_vars,
+            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            stdout=None
-            if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
-            else subprocess.DEVNULL,
+            encoding="utf-8",
         )
+        results[benchmark] = [
+            {"environment": env_proc.stdout.strip(), **r} for r in results[benchmark]
+        ]
 
         # Perform any build activities, if needed
         try:
@@ -115,22 +142,28 @@ for benchmark in args.benchmarks:
                     stdout=None
                     if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
                     else subprocess.DEVNULL,
+                    check=True,
                 )
         except Exception as e:
-            results[benchmark] = ["BROKEN_BUILD" for i in range(args.trials)]
+            results[benchmark] = [
+                {"status": "FAILED", "failed:reason": "BROKEN_BUILD", **r}
+                for r in results[benchmark]
+            ]
             raise e
 
     except Exception as e:
         logging.exception(e)
-        if benchmark not in results:
-            results[benchmark] = ["FAILED" for i in range(args.trials)]
+        if "failed:reason" not in results[benchmark][0]:
+            results[benchmark] = [
+                {"status": "FAILED", "failed:reason": "UNKNOWN_PREP", **r}
+                for r in results[benchmark]
+            ]
         continue
-
-    results[benchmark] = ["PENDING" for i in range(args.trials)]
 
     # Run benchmark trials
     for trial_i in range(args.trials):
         lp = "{}#{}".format(benchmark, trial_i)
+
         try:
             # Check for previous benchmark results
             logging.debug("%s: reviewing previous benchmark results", lp)
@@ -158,6 +191,7 @@ for benchmark in args.benchmarks:
                 lp,
                 cmd_run_benchmark,
             )
+
             try:
                 benchmark_run = subprocess.run(
                     [shutil.which(cmd_run_benchmark[0])] + cmd_run_benchmark[1:],
@@ -181,7 +215,10 @@ for benchmark in args.benchmarks:
                         lp,
                         benchmark_performance,
                     )
+                    results[benchmark][trial_i]["status"] = "FAILED"
+                    results[benchmark][trial_i]["failed:reason"] = "NO_RESULTS"
                     continue
+
                 latest_result = json.loads(latest_results[-1])
                 if (
                     prev_result is not None
@@ -192,10 +229,15 @@ for benchmark in args.benchmarks:
                         lp,
                         benchmark_performance,
                     )
+                    results[benchmark][trial_i]["status"] = "FAILED"
+                    results[benchmark][trial_i]["failed:reason"] = "DUP_TIMESTAMP"
                     continue
+
                 duration = round(latest_result["duration"])
                 logging.info("%s: runtime was %d ms", lp, duration)
-                results[benchmark][trial_i] = duration
+                results[benchmark][trial_i]["status"] = "DONE"
+                results[benchmark][trial_i]["done:duration"] = duration
+
             except subprocess.TimeoutExpired as e:
                 logging.warning(
                     "%s: benchmark exceeded %d second timeout", lp, round(e.timeout)
@@ -204,17 +246,41 @@ for benchmark in args.benchmarks:
                 logging.warning(
                     "%s: wrote %d lines prior to termination", lp, lines_written
                 )
-                results[benchmark][trial_i] = "TIMEOUT[lines=%d,time=%d]" % (
-                    lines_written,
-                    round(e.timeout * 1000),
-                )
+                results[benchmark][trial_i]["status"] = "FAILED"
+                results[benchmark][trial_i]["failed:reason"] = "TIMEOUT"
+                results[benchmark][trial_i]["timeout:lines"] = lines_written
+                results[benchmark][trial_i]["timeout:time"] = round(e.timeout * 1000)
+
             finally:
                 # TODO check if the output that has been written is well-formed
                 pass
+
         except Exception as e:
             logging.exception(e)
-            results[benchmark][trial_i] = "FAILED"
+            results[benchmark][trial_i]["status"] = "FAILED"
+            results[benchmark][trial_i]["failed:reason"] = "UNKNOWN_TRIAL"
+
+
+if args.report is not None:
+    logging.debug("\nsaving results JSON to %s", args.report)
+    args.report.write_text(json.dumps(results, indent=2))
+
 
 logging.info("\nRESULTS:")
-for benchmark, result in results.items():
-    logging.info("{: <24}{}".format(benchmark, "\t".join([str(r) for r in result])))
+for benchmark, trials in results.items():
+    trial_cols = []
+    for trial in trials:
+        if trial["status"] == "DONE":
+            trial_cols.append(str(trial["done:duration"]))
+        elif trial["status"] == "FAILED":
+            if trial["failed:reason"] == "TIMEOUT":
+                trial_cols.append("TO[{}]".format(trial["timeout:lines"]))
+            else:
+                trial_cols.append(trial["failed:reason"])
+        else:
+            trial_cols.append(trial["status"])
+    logging.info(
+        "{: <24}{}".format(
+            benchmark, "\t".join(["{: <12}".format(c) for c in trial_cols])
+        )
+    )
