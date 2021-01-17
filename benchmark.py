@@ -235,8 +235,10 @@ for benchmark in args.benchmarks:
 
                 duration = round(latest_result["duration"])
                 logging.info("%s: runtime was %d ms", lp, duration)
+                lines_written = sum(1 for line in open(cmd_env_vars["BENCH_OUT_TSV"]))
                 results[benchmark][trial_i]["status"] = "DONE"
                 results[benchmark][trial_i]["done:duration"] = duration
+                results[benchmark][trial_i]["done:lines"] = lines_written
 
             except subprocess.TimeoutExpired as e:
                 logging.warning(
