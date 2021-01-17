@@ -8,7 +8,7 @@ import shutil
 import subprocess
 import sys
 
-benchmark_manifests = list(Path(__file__).parent.glob("*/benchmark.json"))
+benchmark_manifests = sorted(list(Path(__file__).parent.glob("*/benchmark.json")))
 benchmark_names = {p.parent.stem: p for p in benchmark_manifests}
 
 parser = argparse.ArgumentParser(description="Execute CSV processing benchmarks")
@@ -42,6 +42,9 @@ parser.add_argument(
     type=int,
     help="the maximum time (in seconds) that a benchmark can run before its terminated",
 )
+parser.add_argument(
+    "--trials", default=1, type=int, help="the number of times to run each benchmark"
+)
 args = parser.parse_args()
 
 logging.basicConfig(
@@ -64,7 +67,9 @@ for benchmark in args.benchmarks:
     benchmark_manifest = benchmark_names[benchmark]
     benchmark_dir = benchmark_manifest.parent
     benchmark_performance = benchmark_dir / "performance"
-    logging.info("BENCHMARK: %s", benchmark)
+    logging.info("\nBENCHMARK: %s", benchmark)
+
+    # Pre-trial setup activities
     try:
         os.chdir(benchmark_dir)
 
@@ -82,14 +87,14 @@ for benchmark in args.benchmarks:
             **mode_env_vars,
         }
         cmd_check_env = benchmark_suite["check:environment"]
-        logging.info('%s: checking environment with "%s"', benchmark, cmd_check_env)
+        logging.debug('%s: checking environment with "%s"', benchmark, cmd_check_env)
         subprocess.run(
             [shutil.which(cmd_check_env[0])] + cmd_check_env[1:],
             cwd=benchmark_dir,
             env=cmd_env_vars,
             stderr=subprocess.STDOUT,
             stdout=None
-            if logging.getLogger().getEffectiveLevel() <= logging.INFO
+            if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
             else subprocess.DEVNULL,
         )
 
@@ -101,98 +106,115 @@ for benchmark in args.benchmarks:
                 cmd_build = benchmark_suite.get("build:any", None)
             if cmd_build is not None:
                 full_env_for_building = {**cmd_env_vars, **os.environ}
-                logging.info('%s: building program with "%s"', benchmark, cmd_build)
+                logging.debug('%s: building program with "%s"', benchmark, cmd_build)
                 subprocess.run(
                     [shutil.which(cmd_build[0])] + cmd_build[1:],
                     cwd=benchmark_dir,
                     env=full_env_for_building,
                     stderr=subprocess.STDOUT,
                     stdout=None
-                    if logging.getLogger().getEffectiveLevel() <= logging.INFO
+                    if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
                     else subprocess.DEVNULL,
                 )
         except Exception as e:
-            logging.exception(e)
-            results[benchmark] = "BROKEN_BUILD"
+            results[benchmark] = ["BROKEN_BUILD" for i in range(args.trials)]
+            raise e
 
-        # Check for previous benchmark results
-        logging.debug("%s: reviewing previous benchmark results", benchmark)
-        prev_result = None
-        prev_results = []
-        if benchmark_performance.exists():
-            prev_results = benchmark_performance.read_text("utf8").strip().split("\n")
-        if len(prev_results) > 0:
-            prev_result = json.loads(prev_results[-1])
-            logging.debug(
-                "%s: previous benchmark was run at %s",
-                benchmark,
-                prev_result["recorded_at"],
-            )
-
-        # Run specific mode
-        if benchmark_out_file.exists():
-            benchmark_out_file.unlink()
-
-        cmd_run_benchmark = benchmark_suite["run:csv_to_tsv"]
-        logging.info(
-            '%s: benchmarking convert CSV to TSV with "%s"',
-            benchmark,
-            cmd_run_benchmark,
-        )
-        try:
-            benchmark_run = subprocess.run(
-                [shutil.which(cmd_run_benchmark[0])] + cmd_run_benchmark[1:],
-                cwd=benchmark_dir,
-                env=cmd_env_vars,
-                stderr=subprocess.STDOUT,
-                stdout=None
-                if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
-                else subprocess.DEVNULL,
-                timeout=args.timeout,
-            )
-            benchmark_run.check_returncode()
-
-            logging.debug("%s: loading latest benchmark results", benchmark)
-            latest_results = benchmark_performance.read_text("utf8").strip().split("\n")
-            if len(latest_results) == 0:
-                logging.error(
-                    "%s: no benchmark results found at %s",
-                    benchmark,
-                    benchmark_performance,
-                )
-                continue
-            latest_result = json.loads(latest_results[-1])
-            if (
-                prev_result is not None
-                and latest_result["recorded_at"] == prev_result["recorded_at"]
-            ):
-                logging.error(
-                    '%s: benchmark appears to have failed (the latest timestamp in "%s" did not change)',
-                    benchmark,
-                    benchmark_performance,
-                )
-                continue
-            duration = round(latest_result["duration"])
-            logging.info("%s: runtime was %d ms", benchmark, duration)
-            results[benchmark] = duration
-        except subprocess.TimeoutExpired as e:
-            logging.warning(
-                "%s: benchmark exceeded %d second timeout", benchmark, round(e.timeout)
-            )
-            lines_written = sum(1 for line in open(cmd_env_vars["BENCH_OUT_TSV"]))
-            logging.warning(
-                "%s: wrote %d lines prior to termination", benchmark, lines_written
-            )
-            results[benchmark] = "TIMEOUT[lines=%d,time=%d]" % (
-                lines_written,
-                round(e.timeout * 1000),
-            )
-        finally:
-            # TODO check if the output that has been written is well-formed
-            pass
     except Exception as e:
         logging.exception(e)
-        results[benchmark] = "FAILED"
+        if benchmark not in results:
+            results[benchmark] = ["FAILED" for i in range(args.trials)]
+        continue
 
+    results[benchmark] = ["PENDING" for i in range(args.trials)]
+
+    # Run benchmark trials
+    for trial_i in range(args.trials):
+        lp = "{}#{}".format(benchmark, trial_i)
+        try:
+            # Check for previous benchmark results
+            logging.debug("%s: reviewing previous benchmark results", lp)
+            prev_result = None
+            prev_results = []
+            if benchmark_performance.exists():
+                prev_results = (
+                    benchmark_performance.read_text("utf8").strip().split("\n")
+                )
+            if len(prev_results) > 0:
+                prev_result = json.loads(prev_results[-1])
+                logging.debug(
+                    "%s: previous benchmark was run at %s",
+                    lp,
+                    prev_result["recorded_at"],
+                )
+
+            # Run specific mode
+            if benchmark_out_file.exists():
+                benchmark_out_file.unlink()
+
+            cmd_run_benchmark = benchmark_suite["run:csv_to_tsv"]
+            logging.debug(
+                '%s: benchmarking convert CSV to TSV with "%s"',
+                lp,
+                cmd_run_benchmark,
+            )
+            try:
+                benchmark_run = subprocess.run(
+                    [shutil.which(cmd_run_benchmark[0])] + cmd_run_benchmark[1:],
+                    cwd=benchmark_dir,
+                    env=cmd_env_vars,
+                    stderr=subprocess.STDOUT,
+                    stdout=None
+                    if logging.getLogger().getEffectiveLevel() <= logging.DEBUG
+                    else subprocess.DEVNULL,
+                    timeout=args.timeout,
+                )
+                benchmark_run.check_returncode()
+
+                logging.debug("%s: loading latest benchmark results", lp)
+                latest_results = (
+                    benchmark_performance.read_text("utf8").strip().split("\n")
+                )
+                if len(latest_results) == 0:
+                    logging.error(
+                        "%s: no benchmark results found at %s",
+                        lp,
+                        benchmark_performance,
+                    )
+                    continue
+                latest_result = json.loads(latest_results[-1])
+                if (
+                    prev_result is not None
+                    and latest_result["recorded_at"] == prev_result["recorded_at"]
+                ):
+                    logging.error(
+                        '%s: benchmark appears to have failed (the latest timestamp in "%s" did not change)',
+                        lp,
+                        benchmark_performance,
+                    )
+                    continue
+                duration = round(latest_result["duration"])
+                logging.info("%s: runtime was %d ms", lp, duration)
+                results[benchmark][trial_i] = duration
+            except subprocess.TimeoutExpired as e:
+                logging.warning(
+                    "%s: benchmark exceeded %d second timeout", lp, round(e.timeout)
+                )
+                lines_written = sum(1 for line in open(cmd_env_vars["BENCH_OUT_TSV"]))
+                logging.warning(
+                    "%s: wrote %d lines prior to termination", lp, lines_written
+                )
+                results[benchmark][trial_i] = "TIMEOUT[lines=%d,time=%d]" % (
+                    lines_written,
+                    round(e.timeout * 1000),
+                )
+            finally:
+                # TODO check if the output that has been written is well-formed
+                pass
+        except Exception as e:
+            logging.exception(e)
+            results[benchmark][trial_i] = "FAILED"
+
+logging.info("\nRESULTS:")
 for benchmark, result in results.items():
-    print("%s\t%s" % (benchmark, result))
+    logging.info("{: <24}{}".format(benchmark, "\t".join([str(r) for r in result])))
