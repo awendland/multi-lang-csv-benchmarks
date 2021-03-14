@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+/* Flex - Cross Browser CSS */
+.vertical thead {
+  display: flex;
+  flex-shrink: 0;
+  min-width: min-content;
+}
+.vertical tbody {
+    display: flex;
+}
+.vertical tr {
+  display: flex;
+  flex-direction: column;
+  min-width: min-content;
+  flex-shrink: 0;
+}
+.vertical td, .vertical th {
+  display: block;
+}
+.vertical caption {
+  display: block;
+}
+
+
+/* Visual styling */
+table { border-collapse: collapse; }
+table td {
+  border: 1px solid black; 
+}
+table th {
+  border: 1px solid black;
+  background-color: grey;
+  color: white;
+}
+    </style>
+  </head>
+  <body>
+    <table class="vertical">
+      <thead>
+        <tr>
+          <th>Language & Library</th>
+          <th>Environment</th>
+          <th>Median <br />Lines / Sec</th>
+          <th>
+            Completed + <br />
+            Timeout Trials
+          </th>
+          {% for trial_i in range(max_trials) -%}
+          <th>Trial #{{ trial_i }}</th>
+          {% endfor -%}
+        </tr>
+      </thead>
+      <tbody>
+        {% for benchmark, results in analyzed_results.items() %}
+        <tr>
+          <td>{{ benchmark }}</td>
+          <td>
+            <details>
+              <summary>show env</summary>
+              {{ results.environment }}
+            </details>
+          </td>
+          <td>{{ "{:,.0f}".format(results.lps_stats_median) }}</td>
+          <td>{{ results.lps_done | length }} + {{ results.lps_timeout | length }}</td>
+          {% for trial in results.trials -%}
+          <td>
+            {%- if trial.status == "DONE" -%}
+                {{ trial["done:duration"] }}
+            {%- elif trial.status == "FAILED" -%}
+                {%- if trial["failed:reason"] == "TIMEOUT" -%}
+                    {{ "TIMEOUT[lines={},time={}]".format(trial["timeout:lines"], trial["timeout:time"]) }}
+                {%- else -%}
+                    {{ trial["failed:reason"] }}
+                {%- endif -%}
+            {%- else -%}
+                {{ trial["status"] }}
+            {%- endif -%}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </body>
+</html>

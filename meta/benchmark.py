@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import argparse
 import json
 import logging
@@ -7,9 +8,18 @@ import platform
 import shutil
 import subprocess
 import sys
+from lib import __repo__
 
 
-benchmark_manifests = sorted(list(Path(__file__).parent.glob("*/benchmark.json")))
+# TODO include OS + platform information for report generation
+# TODO include execution date in report generation
+# TODO include details about input file in report generation
+# TODO include links to benchmark implementation in report generation
+# TODO include library version in report generation
+# TODO include links to library in report generation
+
+
+benchmark_manifests = sorted(list(__repo__.glob("*/benchmark.json")))
 benchmark_names = {p.parent.stem: p for p in benchmark_manifests}
 
 
@@ -34,7 +44,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--input-csv",
-    default=Path(__file__).parent / "data-50k-lines.csv",
+    default=__repo__ / "data-50k-lines.csv",
     type=lambda p: Path(p).resolve(),
     help="the well-formed CSV file to use as benchmark input",
 )

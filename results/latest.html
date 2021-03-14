@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      /* CHECKOUT https://alistapart.com/article/web-typography-tables/ */
+      html {
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+          Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+        font-family: system-ui;
+      }
+      figure {
+        overflow-x: scroll;
+        max-width: 100%;
+        margin: 0;
+      }
+      table {
+        font-variant-numeric: lining-nums tabular-nums;
+        border-collapse: collapse;
+      }
+      thead td {
+        font-weight: bold;
+        text-decoration: underline;
+      }
+      td,
+      th {
+        padding: 0.125em 0.5em 0.25em 0.5em;
+        line-height: 1;
+        vertical-align: top;
+        text-align: left;
+      }
+      .wrap {
+        white-space: normal;
+      }
+      .right {
+        text-align: right;
+      }
+      .bold {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSV to TSV Benchmark</h1>
+    <p>
+      A 50k line CSV file from taken from the
+      <em>NPPES_Data_Dissemination_November_2020</em> dataset was provided as
+      input. Each program streamed this file from disk, parsed the CSV row, and
+      outputted a fully quoted TSV row back to disk.
+    </p>
+    <h2>Summary</h2>
+    <figure>
+      <table>
+        <thead>
+          <tr>
+            <th>Benchmark</th>
+            <th class="right">Lines per second<br /><small>Median</small></th>
+            <th class="right">Trials<br /><small>(Succeeded/Total)</small></th>
+            <th>Environment</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>deno-csv</td>
+            <td class="right">49</td>
+            <td class="right">0/10</td>
+            <td>
+              deno 1.8.1 (release, x86_64-apple-darwin)<br />v8 9.0.257.3<br />typescript
+              4.2.2
+            </td>
+          </tr>
+
+          <tr>
+            <td>nodejs-csv</td>
+            <td class="right">7,908</td>
+            <td class="right">10/10</td>
+            <td>v15.11.0</td>
+          </tr>
+
+          <tr>
+            <td>nodejs-fast-csv</td>
+            <td class="right">2,645</td>
+            <td class="right">0/10</td>
+            <td>v15.11.0</td>
+          </tr>
+
+          <tr>
+            <td>python-csv</td>
+            <td class="right">27,001</td>
+            <td class="right">10/10</td>
+            <td>Python 3.9.0</td>
+          </tr>
+
+          <tr>
+            <td>rust-csv</td>
+            <td class="right">64,063</td>
+            <td class="right">10/10</td>
+            <td>cargo 1.48.0 (65cbdd2dc 2020-10-14)</td>
+          </tr>
+        </tbody>
+      </table>
+    </figure>
+    <h2>Details</h2>
+    <p>
+      Completion time reported in seconds. Or, if the benchmark timed out, the
+      number of lines completed in the given time is reported.
+    </p>
+    <figure>
+      <table>
+        <thead>
+          <tr>
+            <td>Benchmark</td>
+
+            <td>deno-csv</td>
+
+            <td>nodejs-csv</td>
+
+            <td>nodejs-fast-csv</td>
+
+            <td>python-csv</td>
+
+            <td>rust-csv</td>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="bold">Trial #1</td>
+
+            <td>-<br /><small>486 in 10s</small></td>
+
+            <td>6.267</td>
+
+            <td>-<br /><small>27,829 in 10s</small></td>
+
+            <td>1.872</td>
+
+            <td>0.814</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #2</td>
+
+            <td>-<br /><small>474 in 10s</small></td>
+
+            <td>6.363</td>
+
+            <td>-<br /><small>25,759 in 10s</small></td>
+
+            <td>1.903</td>
+
+            <td>0.797</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #3</td>
+
+            <td>-<br /><small>494 in 10s</small></td>
+
+            <td>6.375</td>
+
+            <td>-<br /><small>29,503 in 10s</small></td>
+
+            <td>1.919</td>
+
+            <td>0.695</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #4</td>
+
+            <td>-<br /><small>478 in 10s</small></td>
+
+            <td>6.385</td>
+
+            <td>-<br /><small>26,229 in 10s</small></td>
+
+            <td>1.782</td>
+
+            <td>0.777</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #5</td>
+
+            <td>-<br /><small>489 in 10s</small></td>
+
+            <td>6.351</td>
+
+            <td>-<br /><small>26,432 in 10s</small></td>
+
+            <td>1.807</td>
+
+            <td>0.764</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #6</td>
+
+            <td>-<br /><small>498 in 10s</small></td>
+
+            <td>6.165</td>
+
+            <td>-<br /><small>26,287 in 10s</small></td>
+
+            <td>1.879</td>
+
+            <td>0.770</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #7</td>
+
+            <td>-<br /><small>489 in 10s</small></td>
+
+            <td>6.170</td>
+
+            <td>-<br /><small>26,461 in 10s</small></td>
+
+            <td>1.908</td>
+
+            <td>0.726</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #8</td>
+
+            <td>-<br /><small>458 in 10s</small></td>
+
+            <td>6.322</td>
+
+            <td>-<br /><small>27,145 in 10s</small></td>
+
+            <td>1.798</td>
+
+            <td>0.806</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #9</td>
+
+            <td>-<br /><small>493 in 10s</small></td>
+
+            <td>6.323</td>
+
+            <td>-<br /><small>26,669 in 10s</small></td>
+
+            <td>1.714</td>
+
+            <td>0.819</td>
+          </tr>
+          <tr>
+            <td class="bold">Trial #10</td>
+
+            <td>-<br /><small>488 in 10s</small></td>
+
+            <td>6.170</td>
+
+            <td>-<br /><small>25,849 in 10s</small></td>
+
+            <td>1.832</td>
+
+            <td>0.784</td>
+          </tr>
+        </tbody>
+      </table>
+    </figure>
+  </body>
+</html>

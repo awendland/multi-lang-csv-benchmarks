@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      /* CHECKOUT https://alistapart.com/article/web-typography-tables/ */
+      html {
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji;
+        font-family: system-ui;
+      }
+      figure {
+        overflow-x: scroll;
+        max-width: 100%;
+        margin: 0;
+      }
+      table {
+        font-variant-numeric: lining-nums tabular-nums;
+        border-collapse: collapse;
+      }
+      thead td {
+        font-weight: bold;
+        text-decoration: underline;
+      }
+      td,
+      th {
+        padding: 0.125em 0.5em 0.25em 0.5em;
+        line-height: 1;
+        vertical-align: top;
+        text-align: left;
+      }
+      .wrap {
+        white-space: normal;
+      }
+      .right {
+        text-align: right;
+      }
+      .bold {
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSV to TSV Benchmark</h1>
+    <p>A 50k line CSV file from taken from the <em>NPPES_Data_Dissemination_November_2020</em> dataset was provided as input. Each program streamed this file from disk, parsed the CSV row, and outputted a fully quoted TSV row back to disk.</p>
+    <h2>Summary</h2>
+    <figure>
+      <table>
+        <thead>
+          <tr>
+            <th>Benchmark</th>
+            <th class="right">Lines per second<br/><small>Median</small></th>
+            <th class="right">Trials<br/><small>(Succeeded/Total)</small></th>
+            <th>Environment</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for benchmark, results in analyzed_results.items() %}
+          <tr>
+            <td>{{ benchmark }}</td>
+            <td class="right">{{ "{:,.0f}".format(results.lps_stats_median) }}</td>
+            <td class="right">{{ results.lps_done | length }}/{{ results.trials | length }}</td>
+            <td>{{ results.environment.replace("\n", "<br />") }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </figure>
+    <h2>Details</h2>
+    <p>Completion time reported in seconds. Or, if the benchmark timed out, the number of lines completed in the given time is reported.</p>
+    <figure>
+      <table>
+        <thead>
+          <tr>
+            <td>Benchmark</td>
+            {% for benchmark in analyzed_results.keys() %}
+            <td>{{ benchmark }}</td>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for trial_i in range(max_trials) -%}
+          <tr>
+            <td class="bold">Trial #{{ trial_i + 1 }}</td>
+            {% for results in analyzed_results.values() -%}
+            {% if trial_i < results.trials | length -%} {% set trial = results.trials[trial_i] %}
+            <td>
+              {%- if trial.status == "DONE" -%}
+                {{ "{:,.3f}".format(trial["done:duration"] / 1000) }}
+              {%- elif trial.status == "FAILED" -%}
+                {%- if trial["failed:reason"] == "TIMEOUT" -%}
+                {{
+                  "-<br/><small>{:,.0f} in {}s</small>".format(
+                    trial["timeout:lines"],
+                    trial["timeout:time"] // 1000
+                  )
+                }}
+                {%- else -%}
+                {{ trial["failed:reason"] }}
+                {%- endif -%}
+              {%- else -%}
+                {{ trial["status"] }}
+              {%- endif -%}
+            </td>
+            {% else -%}
+            <td></td>
+            {%- endif %} {%- endfor %}
+          </tr>
+          {%- endfor %}
+        </tbody>
+      </table>
+    </figure>
+  </body>
+</html>

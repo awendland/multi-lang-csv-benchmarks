@@ -1,0 +1,332 @@
+{
+  "deno-csv": [
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 486,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 474,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 494,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 478,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 489,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 498,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 489,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 458,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 493,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "deno 1.8.1 (release, x86_64-apple-darwin)\nv8 9.0.257.3\ntypescript 4.2.2",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 488,
+      "timeout:time": 10000
+    }
+  ],
+  "nodejs-csv": [
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6267,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6363,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6375,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6385,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6351,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6165,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6170,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6322,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6323,
+      "done:lines": 50000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "DONE",
+      "done:duration": 6170,
+      "done:lines": 50000
+    }
+  ],
+  "nodejs-fast-csv": [
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 27829,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 25759,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 29503,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 26229,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 26432,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 26287,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 26461,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 27145,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 26669,
+      "timeout:time": 10000
+    },
+    {
+      "environment": "v15.11.0",
+      "status": "FAILED",
+      "failed:reason": "TIMEOUT",
+      "timeout:lines": 25849,
+      "timeout:time": 10000
+    }
+  ],
+  "python-csv": [
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1872,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1903,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1919,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1782,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1807,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1879,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1908,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1798,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1714,
+      "done:lines": 50000
+    },
+    {
+      "environment": "Python 3.9.0",
+      "status": "DONE",
+      "done:duration": 1832,
+      "done:lines": 50000
+    }
+  ],
+  "rust-csv": [
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 814,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 797,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 695,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 777,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 764,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 770,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 726,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 806,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 819,
+      "done:lines": 50000
+    },
+    {
+      "environment": "cargo 1.48.0 (65cbdd2dc 2020-10-14)",
+      "status": "DONE",
+      "done:duration": 784,
+      "done:lines": 50000
+    }
+  ]
+}

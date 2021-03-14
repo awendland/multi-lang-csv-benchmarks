@@ -1,0 +1,5 @@
+| Language & Library | Median Lines / Sec | # Trials (# Failures) |
+|--------------------|--------------------|-----------------------|
+{% for benchmark, results in analyzed_results.items() -%}
+| {{benchmark}} | {{ "{:,.0f}".format(results.lps_stats_median) }} | {{results.trials | length}} ({{results.lps_timeout | length}}) |
+{% endfor %}
