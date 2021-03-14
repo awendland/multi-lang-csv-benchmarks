@@ -1,4 +1,9 @@
-import csv, datetime, json, os, sys, time
+import csv
+import datetime
+import json
+import os
+import sys
+import time
 
 
 def eprint(*args, **kwargs):
